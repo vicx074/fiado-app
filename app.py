@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from extensions import db, ma
 from models import Cliente, Produto, Venda, VendaItem
+from sqlalchemy import func
+from datetime import datetime, date
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -201,16 +203,25 @@ def relatorio_vendas():
     vendas = Venda.query.all()
     resultado = []
     for venda in vendas:
-        itens = [{
-            'produto': item.produto.nome,
-            'quantidade': item.quantidade,
-            'preco_unitario': item.preco_unitario
-        } for item in venda.itens]
+        itens = []
+        total = 0
+        for item in venda.itens:
+            subtotal = item.quantidade * item.preco_unitario
+            total += subtotal
+            itens.append({
+                'produto_id': item.produto.id,
+                'produto_nome': item.produto.nome,
+                'quantidade': item.quantidade,
+                'preco_unitario': item.preco_unitario,
+                'subtotal': subtotal
+            })
 
         resultado.append({
             'id': venda.id,
             'cliente_id': venda.cliente_id,
+            'cliente_nome': venda.cliente.nome if venda.cliente_id else None,
             'data': venda.data.isoformat(),
+            'total': total,
             'itens': itens
         })
     return jsonify(resultado)
@@ -238,6 +249,83 @@ def relatorio_produtos():
             'estoque': p.estoque
         } for p in produtos
     ])
+
+# ------------------- ROTA DE RELATÓRIO RESUMO -----------------------
+
+@app.route('/relatorios/resumo', methods=['GET'])
+def relatorio_resumo():
+    inicio = request.args.get('inicio')
+    fim = request.args.get('fim')
+    cliente_id = request.args.get('cliente_id')
+
+    query = Venda.query
+
+    # Filtro por datas
+    if inicio:
+        try:
+            inicio_date = datetime.strptime(inicio, '%Y-%m-%d').date()
+            query = query.filter(Venda.data >= inicio_date)
+        except ValueError:
+            return jsonify({'error': 'Data de início inválida. Use formato YYYY-MM-DD'}), 400
+
+    if fim:
+        try:
+            fim_date = datetime.strptime(fim, '%Y-%m-%d').date()
+            query = query.filter(Venda.data <= fim_date)
+        except ValueError:
+            return jsonify({'error': 'Data de fim inválida. Use formato YYYY-MM-DD'}), 400
+
+    # Filtro por cliente
+    if cliente_id:
+        try:
+            cliente_id_int = int(cliente_id)
+            query = query.filter(Venda.cliente_id == cliente_id_int)
+        except ValueError:
+            return jsonify({'error': 'cliente_id deve ser um número inteiro'}), 400
+
+    vendas_filtradas = query.all()
+
+    total_vendas = len(vendas_filtradas)
+
+    # Faturamento total no período
+    faturamento = 0
+    produto_vendido_count = {}
+    cliente_compras_count = {}
+
+    for venda in vendas_filtradas:
+        cliente_compras_count[venda.cliente_id] = cliente_compras_count.get(venda.cliente_id, 0) + 1
+        for item in venda.itens:
+            faturamento += item.quantidade * item.preco_unitario
+            produto_vendido_count[item.produto_id] = produto_vendido_count.get(item.produto_id, 0) + item.quantidade
+
+    # Produto mais vendido
+    produto_mais_vendido = None
+    if produto_vendido_count:
+        produto_id_mais_vendido = max(produto_vendido_count, key=produto_vendido_count.get)
+        produto_mais_vendido_obj = Produto.query.get(produto_id_mais_vendido)
+        produto_mais_vendido = {
+            'id': produto_mais_vendido_obj.id,
+            'nome': produto_mais_vendido_obj.nome,
+            'quantidade_vendida': produto_vendido_count[produto_id_mais_vendido]
+        }
+
+    # Cliente com mais compras
+    cliente_mais_compras = None
+    if cliente_compras_count:
+        cliente_id_mais_compras = max(cliente_compras_count, key=cliente_compras_count.get)
+        cliente_mais_compras_obj = Cliente.query.get(cliente_id_mais_compras)
+        cliente_mais_compras = {
+            'id': cliente_mais_compras_obj.id,
+            'nome': cliente_mais_compras_obj.nome,
+            'quantidade_compras': cliente_compras_count[cliente_id_mais_compras]
+        }
+
+    return jsonify({
+        'total_vendas': total_vendas,
+        'faturamento_total': faturamento,
+        'produto_mais_vendido': produto_mais_vendido,
+        'cliente_mais_compras': cliente_mais_compras
+    })
 
 # ------------------- RODANDO O APP -----------------------
 
