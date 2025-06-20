@@ -1,4 +1,3 @@
-# schemas.py
 from extensions import ma
 from models import Cliente
 
