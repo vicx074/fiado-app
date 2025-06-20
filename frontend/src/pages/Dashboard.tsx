@@ -1,82 +1,164 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { clienteService } from '../services/clienteService';
+import { vendaService } from '../services/vendaService';
 import Layout from '../components/Layout';
-import { relatorioService } from '../services/relatorioService';
-import { ResumoRelatorio } from '../types';
+import { Cliente, Venda } from '../types';
+import { Users, DollarSign, ShoppingCart, AlertTriangle, UserCog } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './styles/Dashboard.css';
 
+interface DashboardData {
+  totalClientes: number;
+  totalFiado: number;
+  totalVendas: number;
+  topClientes: Cliente[];
+  ultimasVendas: Venda[];
+}
+
 const Dashboard: React.FC = () => {
-  const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
+  const [data, setData] = useState<DashboardData>({
+    totalClientes: 0,
+    totalFiado: 0,
+    totalVendas: 0,
+    topClientes: [],
+    ultimasVendas: []
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const carregarResumo = useCallback(async () => {
+  const carregarDados = useCallback(async () => {
     try {
       setLoading(true);
-      const dados = await relatorioService.obterResumo();
-      setResumo(dados);
+      
+      const clientes = await clienteService.listarClientes();
+      const vendas = await vendaService.listarVendas();
+      
+      const totalClientes = clientes.length;
+      const totalFiado = clientes.reduce((acc, cliente) => acc + cliente.fiado, 0);
+      const totalVendas = vendas.length;
+      
+      // Ordenar os clientes por valor de fiado (maior para menor)
+      const topClientes = [...clientes]
+        .filter(cliente => cliente.fiado > 0)
+        .sort((a, b) => b.fiado - a.fiado)
+        .slice(0, 10); // Mostrar mais clientes
+      
+      // Ordenar por data mais recente
+      const ultimasVendas = [...vendas]
+        .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+        .slice(0, 5);
+      
+      setData({
+        totalClientes,
+        totalFiado,
+        totalVendas,
+        topClientes,
+        ultimasVendas
+      });
+      
       setError(null);
     } catch (err) {
-      console.error('Erro ao carregar resumo:', err);
-      setError('Não foi possível carregar o resumo. Tente novamente mais tarde.');
+      console.error('Erro ao carregar dados do dashboard:', err);
+      setError('Erro ao carregar dados. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    carregarResumo();
-  }, [carregarResumo]);
+    carregarDados();
+  }, [carregarDados]);
+
+  const formatarMoeda = (valor: number) => {
+    return new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL' 
+    }).format(valor);
+  };
+
+  const formatarData = (dataString: string) => {
+    const data = new Date(dataString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(data);
+  };
 
   return (
     <Layout title="Dashboard">
+      {error && <div className="error-message">{error}</div>}
+      
       {loading ? (
-        <div className="loading">Carregando...</div>
-      ) : error ? (
-        <div className="error-message">{error}</div>
+        <div className="loading">Carregando dados...</div>
       ) : (
-        <div className="dashboard">
-          <div className="stats-container">
+        <>
+          <div className="stat-cards">
             <div className="stat-card">
-              <h3>Total de Vendas</h3>
-              <p className="stat-value">{resumo?.total_vendas || 0}</p>
+              <div className="stat-card-icon clients">
+                <Users />
+              </div>
+              <div className="stat-card-content">
+                <div className="stat-card-title">Total de Clientes</div>
+                <div className="stat-card-value">{data.totalClientes}</div>
+              </div>
             </div>
             
             <div className="stat-card">
-              <h3>Faturamento Total</h3>
-              <p className="stat-value">
-                {new Intl.NumberFormat('pt-BR', { 
-                  style: 'currency', 
-                  currency: 'BRL' 
-                }).format(resumo?.faturamento_total || 0)}
-              </p>
+              <div className="stat-card-icon sales">
+                <ShoppingCart />
+              </div>
+              <div className="stat-card-content">
+                <div className="stat-card-title">Total de Vendas</div>
+                <div className="stat-card-value">{data.totalVendas}</div>
+              </div>
             </div>
           </div>
-
-          <div className="info-cards">
-            {resumo?.produto_mais_vendido && (
-              <div className="info-card">
-                <h3>Produto Mais Vendido</h3>
-                <p className="info-name">{resumo.produto_mais_vendido.nome}</p>
-                <p className="info-detail">
-                  {resumo.produto_mais_vendido.quantidade_vendida} unidades vendidas
-                </p>
+        
+          <div className="dashboard-grid">
+            <div className="card top-clientes-card">
+              <div className="card-header">
+                <h2 className="card-title">
+                  <AlertTriangle className="icon-warning" />
+                  Clientes com Fiado Pendente
+                </h2>
+                <Link to="/vendas" className="btn btn-primary">
+                  <UserCog /> Gerenciar Clientes
+                </Link>
               </div>
-            )}
-            
-            {resumo?.cliente_mais_compras && (
-              <div className="info-card">
-                <h3>Cliente Com Mais Compras</h3>
-                <p className="info-name">{resumo.cliente_mais_compras.nome}</p>
-                <p className="info-detail">
-                  {resumo.cliente_mais_compras.quantidade_compras} compras realizadas
-                </p>
-              </div>
-            )}
+              
+              {data.topClientes.length === 0 ? (
+                <div className="empty-state">Nenhum cliente com fiado pendente</div>
+              ) : (
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Referência</th>
+                        <th>Telefone</th>
+                        <th>Valor Pendente</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.topClientes.map((cliente) => (
+                        <tr key={cliente.id}>
+                          <td>{cliente.nome}</td>
+                          <td>{cliente.referencia || '-'}</td>
+                          <td>{cliente.telefone || '-'}</td>
+                          <td className="fiado-value">{formatarMoeda(cliente.fiado)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </Layout>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

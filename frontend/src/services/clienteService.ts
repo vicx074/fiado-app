@@ -1,6 +1,13 @@
 import api from './api';
 import { Cliente } from '../types';
 
+interface ClienteInput {
+  nome: string;
+  telefone: string;
+  fiado: number;
+  referencia?: string;
+}
+
 export const clienteService = {
   listarClientes: async (): Promise<Cliente[]> => {
     const response = await api.get('/clientes');
@@ -12,12 +19,12 @@ export const clienteService = {
     return response.data;
   },
   
-  criarCliente: async (cliente: Omit<Cliente, 'id'>): Promise<Cliente> => {
+  criarCliente: async (cliente: ClienteInput): Promise<Cliente> => {
     const response = await api.post('/clientes', cliente);
     return response.data;
   },
   
-  atualizarCliente: async (id: number, cliente: Partial<Cliente>): Promise<Cliente> => {
+  atualizarCliente: async (id: number, cliente: Partial<ClienteInput>): Promise<Cliente> => {
     const response = await api.put(`/clientes/${id}`, cliente);
     return response.data;
   },

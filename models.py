@@ -18,6 +18,7 @@ class Venda(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=True)
     data = db.Column(db.DateTime, default=db.func.current_timestamp())
+    valor = db.Column(db.Float, default=0.0)  # NOVO CAMPO: valor do fiado puro
 
     itens = db.relationship('VendaItem', backref='venda', cascade='all, delete-orphan')
 

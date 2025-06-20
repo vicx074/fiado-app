@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Home, FileText, BarChart } from 'lucide-react';
 import './styles/Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -13,24 +14,24 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="container">
         <div className="navbar-brand">
-          <Link to="/">Controle de Fiado</Link>
+          <Link to="/">
+            <span className="logo-icon">₿</span>
+            <span className="logo-text">Controle de Fiado</span>
+          </Link>
         </div>
         
         <div className="navbar-menu">
           <Link to="/" className={`navbar-item ${isActive('/')}`}>
-            Dashboard
-          </Link>
-          <Link to="/clientes" className={`navbar-item ${isActive('/clientes')}`}>
-            Clientes
-          </Link>
-          <Link to="/produtos" className={`navbar-item ${isActive('/produtos')}`}>
-            Produtos
+            <Home size={18} style={{marginRight: 6}} />
+            <span>Dashboard</span>
           </Link>
           <Link to="/vendas" className={`navbar-item ${isActive('/vendas')}`}>
-            Vendas
+            <FileText size={18} style={{marginRight: 6}} />
+            <span>Vendas</span>
           </Link>
           <Link to="/relatorios" className={`navbar-item ${isActive('/relatorios')}`}>
-            Relatórios
+            <BarChart size={18} style={{marginRight: 6}} />
+            <span>Relatórios</span>
           </Link>
         </div>
       </div>
@@ -38,4 +39,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

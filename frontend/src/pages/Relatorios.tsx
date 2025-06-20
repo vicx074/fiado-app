@@ -208,9 +208,25 @@ const Relatorios: React.FC = () => {
                     vendas.map((venda) => (
                       <tr key={venda.id}>
                         <td>{formatarData(venda.data)}</td>
-                        <td>{venda.cliente_nome || 'Cliente não cadastrado'}</td>
-                        <td>{venda.itens.length} itens</td>
-                        <td>{formatarMoeda(venda.total)}</td>
+                        <td>
+                          <div><strong>{venda.cliente_nome || 'Cliente não cadastrado'}</strong></div>
+                          <div style={{ fontSize: '0.9em', color: '#666' }}>
+                            {(() => {
+                              const cliente = clientes.find(c => c.id === venda.cliente_id);
+                              if (cliente) {
+                                return (
+                                  <>
+                                    {cliente.referencia && <span>Ref: {cliente.referencia} </span>}
+                                    {cliente.telefone && <span>• WhatsApp: {cliente.telefone}</span>}
+                                  </>
+                                );
+                              }
+                              return null;
+                            })()}
+                          </div>
+                        </td>
+                        <td>{venda.itens && venda.itens.length > 0 ? `${venda.itens.length} itens` : '-'}</td>
+                        <td>{formatarMoeda(venda.valor || venda.total)}</td>
                       </tr>
                     ))
                   )}
@@ -259,4 +275,4 @@ const Relatorios: React.FC = () => {
   );
 };
 
-export default Relatorios; 
+export default Relatorios;

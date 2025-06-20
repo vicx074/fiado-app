@@ -1,87 +1,65 @@
-# Controle de Fiado
+# Sistema de Controle de Fiado
 
-Sistema para pequenos comerciantes controlarem as vendas fiado dos seus clientes.
+Um sistema simples e eficiente para pequenos comerciantes controlarem vendas fiado.
 
-## Características
+## Funcionalidades
 
-- Gestão de clientes
-- Controle de produtos e estoque
-- Registro de vendas fiado
-- Relatórios e dashboards
-- Interface intuitiva e amigável
+- **Dashboard**: Visualização rápida de valores pendentes e clientes com fiado
+- **Controle de Fiado**: Registro de valores fiado por cliente
+- **Gerenciamento de Clientes**: Cadastro e edição de clientes com campo de referência para fácil identificação
+- **Relatórios**: Acompanhamento de vendas e pagamentos
 
-## Tecnologias utilizadas
+## Tecnologias
 
-- **Backend:** Flask (Python), SQLite
-- **Frontend:** React, TypeScript, CSS
+- **Backend**: Python com Flask
+- **Frontend**: React com TypeScript
+- **Banco de Dados**: SQLite (para facilitar a instalação)
 
-## Requisitos
+## Como Iniciar
+
+### Requisitos
 
 - Python 3.6+
 - Node.js 14+
-- NPM ou Yarn
+- npm ou yarn
 
-## Instalação
-
-1. Clone este repositório
-2. Configure o ambiente backend:
+### Backend
 
 ```bash
-# Instalar dependências Python
+# Instalar dependências
 pip install -r requirements.txt
+
+# Iniciar o servidor
+python app.py
 ```
 
-3. Configure o ambiente frontend:
+### Frontend
 
 ```bash
-# Entrar na pasta frontend
+# Entrar na pasta do frontend
 cd frontend
 
 # Instalar dependências
 npm install
-```
 
-## Executando o projeto
-
-### Iniciar o backend e frontend separadamente
-
-**Backend:**
-
-```bash
-python app.py
-```
-
-O servidor será iniciado em http://localhost:5000
-
-**Frontend:**
-
-```bash
-cd frontend
+# Iniciar o servidor de desenvolvimento
 npm start
 ```
 
-O frontend será iniciado em http://localhost:3000
-
 ## Estrutura do Projeto
 
-```
-fiado-app/
-  ├── app.py             # Backend Flask
-  ├── extensions.py      # Extensões do Flask
-  ├── models.py          # Modelos de dados
-  ├── schemas.py         # Schemas para validação de dados
-  ├── requirements.txt   # Dependências Python
-  ├── instance/          # Banco de dados SQLite
-  │
-  └── frontend/          # Aplicação React
-      ├── src/
-      │   ├── components/   # Componentes reutilizáveis
-      │   ├── pages/        # Páginas principais
-      │   ├── services/     # Conexão com a API
-      │   └── types/        # Definições de tipos TypeScript
-      └── public/
-```
+- `/app.py` - Aplicação Flask principal
+- `/models.py` - Modelos de dados
+- `/schemas.py` - Schemas para validação
+- `/frontend/` - Aplicação React
 
-## Contribuição
+## Uso
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir um issue ou enviar um pull request. 
+1. Acesse o Dashboard para visualizar um resumo dos valores pendentes
+2. Na tela de Controle de Fiado, registre novos valores fiado
+3. Adicione clientes com referências para facilitar a identificação
+4. Marque como pago quando o cliente quitar sua dívida
+
+## Licença
+
+Este projeto é licenciado sob a licença MIT. 

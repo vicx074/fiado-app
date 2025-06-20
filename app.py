@@ -10,7 +10,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Habilitar CORS
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 db.init_app(app)
 ma.init_app(app)
@@ -128,11 +128,25 @@ def deletar_produto(id):
 def registrar_venda():
     data = request.json
     cliente_id = data.get('cliente_id')
+    valor = data.get('valor', 0.0)
     itens = data.get('itens', [])
 
-    if not itens:
-        return jsonify({'error': 'Nenhum item fornecido para venda'}), 400
+    if not cliente_id:
+        return jsonify({'error': 'Cliente não informado'}), 400
 
+    # Se não houver itens, registrar apenas o fiado
+    if not itens:
+        cliente = Cliente.query.get(cliente_id)
+        if not cliente:
+            return jsonify({'error': 'Cliente não encontrado'}), 404
+        cliente.fiado += float(valor)
+        # Salva o valor do fiado puro na venda
+        venda = Venda(cliente_id=cliente_id, valor=valor)
+        db.session.add(venda)
+        db.session.commit()
+        return jsonify({'id': venda.id, 'cliente_id': venda.cliente_id, 'data': venda.data.isoformat()}), 201
+
+    # Lógica antiga para vendas com itens
     venda = Venda(cliente_id=cliente_id)
     db.session.add(venda)
 
@@ -144,7 +158,6 @@ def registrar_venda():
         if produto.estoque < item['quantidade']:
             db.session.rollback()
             return jsonify({'error': f"Estoque insuficiente para o produto {produto.nome}"}), 400
-        
         produto.estoque -= item['quantidade']
         venda_item = VendaItem(
             venda=venda,
@@ -193,14 +206,35 @@ def atualizar_venda(id):
 
 @app.route('/vendas/<int:id>', methods=['DELETE'])
 def deletar_venda(id):
-    venda = Venda.query.get_or_404(id)
+    try:
+        venda = Venda.query.get_or_404(id)
+        cliente = Cliente.query.get(venda.cliente_id) if venda.cliente_id else None
 
-    for item in venda.itens:
-        item.produto.estoque += item.quantidade
-
-    db.session.delete(venda)
-    db.session.commit()
-    return '', 204
+        # Se for venda fiado puro (sem itens)
+        if not venda.itens or len(venda.itens) == 0:
+            db.session.delete(venda)
+            db.session.flush()  # Remove a venda antes de recalcular
+            if cliente:
+                fiados_restantes = db.session.query(Venda).filter(
+                    Venda.cliente_id == cliente.id,
+                    ~db.session.query(VendaItem).filter(VendaItem.venda_id == Venda.id).exists()
+                ).all()
+                cliente.fiado = sum(v.valor or 0.0 for v in fiados_restantes) if fiados_restantes else 0.0
+            db.session.commit()
+            return '', 204
+        else:
+            # Se for venda com itens, devolve estoque e deleta
+            for item in venda.itens:
+                if item.produto:
+                    item.produto.estoque += item.quantidade
+            db.session.delete(venda)
+            db.session.commit()
+            return '', 204
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/relatorios/vendas', methods=['GET'])
 def relatorio_vendas():
@@ -226,6 +260,7 @@ def relatorio_vendas():
             'cliente_nome': venda.cliente.nome if venda.cliente_id else None,
             'data': venda.data.isoformat(),
             'total': total,
+            'valor': venda.valor or total,
             'itens': itens
         })
     return jsonify(resultado)
@@ -334,4 +369,4 @@ def relatorio_resumo():
 # ------------------- RODANDO O APP -----------------------
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

@@ -3,6 +3,7 @@ export interface Cliente {
   nome: string;
   telefone: string;
   fiado: number;
+  referencia?: string;
 }
 
 export interface Produto {
@@ -26,6 +27,7 @@ export interface Venda {
   cliente_nome: string | null;
   data: string;
   total: number;
+  valor: number;
   itens: VendaItem[];
 }
 
@@ -42,4 +44,4 @@ export interface ResumoRelatorio {
     nome: string;
     quantidade_compras: number;
   } | null;
-} 
+}

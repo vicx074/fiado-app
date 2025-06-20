@@ -1,9 +1,9 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import Navbar from './Navbar';
 import './styles/Layout.css';
 
 interface LayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
   title?: string;
 }
 
@@ -12,8 +12,10 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     <div className="layout">
       <Navbar />
       <main className="main-content">
-        {title && <h1 className="page-title">{title}</h1>}
-        {children}
+        <div className="content-container">
+          {title && <h1 className="page-title">{title}</h1>}
+          {children}
+        </div>
       </main>
       <footer className="footer">
         <div className="container">
