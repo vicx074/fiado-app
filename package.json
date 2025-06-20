@@ -1,0 +1,13 @@
+{
+  "name": "fiado-app",
+  "version": "1.0.0",
+  "description": "Sistema de Controle de Fiado para pequenos comerciantes",
+  "scripts": {
+    "start:backend": "cd . && python app.py",
+    "start:frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.0"
+  }
+} 

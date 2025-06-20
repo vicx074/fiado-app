@@ -1,0 +1,67 @@
+.venda-modal {
+  max-width: 800px;
+  width: 95%;
+}
+
+.produto-selection {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quantidade-group {
+  width: 120px;
+}
+
+.carrinho-container {
+  margin-top: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.carrinho-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.carrinho-table th,
+.carrinho-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.carrinho-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+.carrinho-table tfoot {
+  font-weight: bold;
+}
+
+.total-label {
+  text-align: right;
+}
+
+.total-value {
+  font-size: 1.1rem;
+  color: #3490dc;
+}
+
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background-color: white;
+}
+
+select:focus {
+  border-color: #3490dc;
+  outline: none;
+} 
