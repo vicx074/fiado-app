@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import { vendaService } from '../services/vendaService';
 import { clienteService } from '../services/clienteService';
 import { Cliente, Venda } from '../types';
-import { ShoppingCart, Plus, Edit, Trash2, Check } from 'lucide-react';
+import { ShoppingCart, Plus, Edit, Trash2, Check, Coins } from 'lucide-react';
 import './styles/Vendas.css';
 
 interface NovoCliente {
@@ -34,6 +34,7 @@ const Vendas: React.FC = () => {
     telefone: '', 
     referencia: '' 
   });
+  const [showPagoAnim, setShowPagoAnim] = useState<{[id: number]: boolean}>({});
 
   const carregarDados = useCallback(async () => {
     try {
@@ -177,6 +178,12 @@ const Vendas: React.FC = () => {
     const venda = vendas.find(v => v.id === vendaId);
     if (!venda || !venda.cliente_id) return;
 
+    // Mostra animação
+    setShowPagoAnim(prev => ({ ...prev, [vendaId]: true }));
+    setTimeout(() => {
+      setShowPagoAnim(prev => ({ ...prev, [vendaId]: false }));
+    }, 1200);
+
     try {
       await vendaService.excluirVenda(vendaId);
       setVendas(vendas.filter(v => v.id !== vendaId));
@@ -275,13 +282,21 @@ const Vendas: React.FC = () => {
                   <td>{formatarMoeda(venda.valor || venda.total)}</td>
                   <td className="acoes">
                     {venda.cliente_id && (
-                      <button 
-                        className="btn-icon btn-success" 
-                        onClick={() => marcarComoPago(venda.id)}
-                        title="Marcar como pago"
-                      >
-                        <Check size={16} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Pago
-                      </button>
+                      <>
+                        <button 
+                          className="btn-icon btn-success" 
+                          onClick={() => marcarComoPago(venda.id)}
+                          title="Marcar como pago"
+                          disabled={!!showPagoAnim[venda.id]}
+                        >
+                          <Check size={16} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Pago
+                        </button>
+                        {showPagoAnim[venda.id] && (
+                          <span className="pago-anim">
+                            <Coins size={28} />
+                          </span>
+                        )}
+                      </>
                     )}
                     <button 
                       className="btn-icon btn-danger" 
