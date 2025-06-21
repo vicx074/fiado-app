@@ -6,7 +6,7 @@ import { Cliente, Venda, ResumoRelatorio } from '../types';
 import './styles/Relatorios.css';
 import * as XLSX from 'xlsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { Search, Edit2, Trash2 } from 'lucide-react';
+import { Search, Edit2, Trash2, Edit } from 'lucide-react';
 
 const Relatorios: React.FC = () => {
   const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
@@ -24,6 +24,9 @@ const Relatorios: React.FC = () => {
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [clienteEditado, setClienteEditado] = useState<Cliente | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+  const [modalEditarValor, setModalEditarValor] = useState(false);
+  const [clienteValorEditando, setClienteValorEditando] = useState<Cliente | null>(null);
+  const [novoValorFiado, setNovoValorFiado] = useState('');
   
   const carregarDados = useCallback(async () => {
     try {
@@ -262,13 +265,15 @@ const Relatorios: React.FC = () => {
                   <tr>
                     <th>Nome</th>
                     <th>Telefone</th>
+                    <th>Referência</th>
                     <th>Valor Fiado</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {clientes.filter(c => c.fiado > 0 && c.nome.toLowerCase().includes(termoBusca.toLowerCase())).length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="empty-state">
+                      <td colSpan={5} className="empty-state">
                         Nenhum cliente com fiado pendente.
                       </td>
                     </tr>
@@ -280,6 +285,7 @@ const Relatorios: React.FC = () => {
                         <tr key={cliente.id} className={cliente.fiado === maiorFiado ? 'maior-fiado' : ''}>
                           <td>{cliente.nome}</td>
                           <td>{cliente.telefone || '-'}</td>
+                          <td>{cliente.referencia || '-'}</td>
                           <td className="valor-pendente">{formatarMoeda(cliente.fiado)}
                             {cliente.fiado === maiorFiado && <span className="badge-maior">TOP</span>}
                             {cliente.telefone && (

@@ -19,11 +19,11 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
       </main>
       <footer className="footer">
         <div className="container">
-          <p>© {new Date().getFullYear()} Controle de Fiado - Sistema para pequenos comerciantes</p>
+          <p>© {new Date().getFullYear()} Pague Depois - Sistema para pequenos comerciantes</p>
         </div>
       </footer>
     </div>
   );
 };
 
-export default Layout; 
+export default Layout;

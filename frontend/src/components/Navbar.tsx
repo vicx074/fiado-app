@@ -16,7 +16,7 @@ const Navbar: React.FC = () => {
         <div className="navbar-brand">
           <Link to="/">
             <span className="logo-icon">₿</span>
-            <span className="logo-text">Controle de Fiado</span>
+            <span className="logo-text">Pague Depois</span>
           </Link>
         </div>
         
