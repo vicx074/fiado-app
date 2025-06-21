@@ -164,9 +164,18 @@ const Relatorios: React.FC = () => {
     setClienteEditado({ ...clienteEditado, [name]: value });
   };
 
-  const excluirCliente = (cliente: Cliente) => {
-    // Implementar lógica de exclusão
-    console.log('Excluir cliente:', cliente);
+  const excluirCliente = async (cliente: Cliente) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o cliente "${cliente.nome}"? Essa ação é permanente!`)) {
+      return;
+    }
+    try {
+      await clienteService.excluirCliente(cliente.id);
+      setClientes(clientes.filter(c => c.id !== cliente.id));
+      setMensagemSucesso('Cliente excluído com sucesso!');
+      setTimeout(() => setMensagemSucesso(null), 2000);
+    } catch (err) {
+      setError('Erro ao excluir cliente. Tente novamente.');
+    }
   };
 
   // Função para enviar cobrança via WhatsApp (abrindo o WhatsApp Web)
