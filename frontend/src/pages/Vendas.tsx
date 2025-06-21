@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import { vendaService } from '../services/vendaService';
 import { clienteService } from '../services/clienteService';
 import { Cliente, Venda } from '../types';
-import { ShoppingCart, Plus, Edit, Trash2, Check, User } from 'lucide-react';
+import { ShoppingCart, Plus, Edit, Trash2, Check } from 'lucide-react';
 import './styles/Vendas.css';
 
 interface NovoCliente {
@@ -330,41 +330,6 @@ const Vendas: React.FC = () => {
                 </button>
               </div>
             </div>
-
-            {clienteSelecionado && (
-              <div className="cliente-info" style={{ background: '#f1f5f9', borderRadius: 8, padding: '1em', marginBottom: 24 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontWeight: 500 }}>Cliente: <strong>{clienteNomeById(clienteSelecionado)}</strong></span>
-                  <button 
-                    className="btn-icon btn-secondary" 
-                    onClick={() => {
-                      const cliente = clientes.find(c => c.id === clienteSelecionado);
-                      if (cliente) abrirModalEditarCliente(cliente);
-                    }}
-                    title="Editar cliente"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    className="btn-icon btn-danger"
-                    onClick={() => excluirCliente(clienteSelecionado)}
-                    title="Excluir cliente"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                {clientes.find(c => c.id === clienteSelecionado)?.referencia && (
-                  <div className="cliente-referencia" style={{ color: '#64748b', fontSize: '0.98em', marginTop: 4 }}>
-                    Ref: {clientes.find(c => c.id === clienteSelecionado)?.referencia}
-                  </div>
-                )}
-                {clientes.find(c => c.id === clienteSelecionado)?.telefone && (
-                  <div style={{ color: '#64748b', fontSize: '0.98em', marginTop: 2 }}>
-                    WhatsApp: {clientes.find(c => c.id === clienteSelecionado)?.telefone}
-                  </div>
-                )}
-              </div>
-            )}
 
             <div className="form-group" style={{ marginBottom: 32 }}>
               <label htmlFor="valorFiado" style={{ fontWeight: 600, fontSize: '1.1em' }}>Valor Fiado</label>
