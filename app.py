@@ -434,6 +434,11 @@ def relatorio_resumo():
         'cliente_mais_compras': cliente_mais_compras
     })
 
+# ------------------- ROTA DE SAÚDE -----------------------
+@app.route('/')
+def home():
+    return jsonify({'message': 'Backend rodando!'})
+
 # ------------------- RODANDO O APP -----------------------
 
 if __name__ == '__main__':
