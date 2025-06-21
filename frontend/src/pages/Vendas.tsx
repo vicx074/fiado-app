@@ -28,6 +28,7 @@ const Vendas: React.FC = () => {
   const [clienteSelecionado, setClienteSelecionado] = useState<number | null>(null);
   const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
   const [valorFiado, setValorFiado] = useState<number>(0);
+  const [valorFiadoInput, setValorFiadoInput] = useState<string>('');
   const [novoCliente, setNovoCliente] = useState<NovoCliente>({ 
     nome: '', 
     telefone: '', 
@@ -368,12 +369,20 @@ const Vendas: React.FC = () => {
             <div className="form-group" style={{ marginBottom: 32 }}>
               <label htmlFor="valorFiado" style={{ fontWeight: 600, fontSize: '1.1em' }}>Valor Fiado</label>
               <input
-                type="number"
+                type="text"
                 id="valorFiado"
-                value={valorFiado}
-                onChange={(e) => setValorFiado(Math.max(0, parseFloat(e.target.value) || 0))}
-                min="0"
-                step="0.01"
+                value={valorFiadoInput}
+                onChange={e => {
+                  // Aceita apenas números, vírgula e ponto
+                  let v = e.target.value.replace(/[^\d,\.]/g, '');
+                  // Remove zeros à esquerda
+                  v = v.replace(/^0+(?![.,]|$)/, '');
+                  setValorFiadoInput(v);
+                  // Converte para número para uso interno
+                  let num = parseFloat(v.replace(',', '.'));
+                  setValorFiado(isNaN(num) ? 0 : num);
+                }}
+                inputMode="decimal"
                 placeholder="0,00"
                 style={{
                   fontSize: '2.2em',
@@ -387,6 +396,7 @@ const Vendas: React.FC = () => {
                   textAlign: 'center',
                   letterSpacing: 1
                 }}
+                autoFocus
               />
             </div>
 
