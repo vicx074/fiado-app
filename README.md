@@ -13,7 +13,7 @@ Um sistema simples e eficiente para pequenos comerciantes controlarem vendas fia
 
 - **Backend**: Python com Flask
 - **Frontend**: React com TypeScript
-- **Banco de Dados**: SQLite (para facilitar a instalação)
+- **Banco de Dados**: SQLite (para facilitar a instalação e deploy do MVP)
 
 ## Como Iniciar
 
@@ -46,6 +46,36 @@ npm install
 npm start
 ```
 
+## Deploy (MVP)
+
+### Backend (Flask + SQLite no Rancher)
+
+1. Gere a imagem Docker:
+   ```sh
+   docker build -t fiado-backend:latest .
+   ```
+2. Suba a imagem no Rancher (ou Docker Hub, se preferir):
+   - Use a porta 5000.
+   - Não precisa de volume se não se importar em perder os dados ao reiniciar (MVP).
+   - Se quiser persistência, monte um volume em `/app/app.db`.
+
+### Frontend (React no Netlify)
+
+1. Faça o build do frontend:
+   ```sh
+   cd frontend
+   npm install
+   npm run build
+   ```
+2. No Netlify:
+   - Configure o build command: `npm run build`
+   - Configure o publish directory: `frontend/build`
+   - Configure a variável de ambiente `REACT_APP_API_URL` com o endereço do backend Flask.
+
+### Observações
+- O SQLite funciona dentro do container para MVP, mas não é recomendado para produção real.
+- O frontend se comunica com o backend via variável de ambiente.
+
 ## Estrutura do Projeto
 
 - `/app.py` - Aplicação Flask principal
@@ -62,4 +92,4 @@ npm start
 
 ## Licença
 
-Este projeto é licenciado sob a licença MIT. 
+Este projeto é licenciado sob a licença MIT.
