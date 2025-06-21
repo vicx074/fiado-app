@@ -3,18 +3,13 @@ import Layout from '../components/Layout';
 import { vendaService } from '../services/vendaService';
 import { clienteService } from '../services/clienteService';
 import { Cliente, Venda } from '../types';
-import { ShoppingCart, Plus, Edit, Trash2, Check, Coins } from 'lucide-react';
+import { ShoppingCart, Plus, Trash2, Check, Coins } from 'lucide-react';
 import './styles/Vendas.css';
 
 interface NovoCliente {
   nome: string;
   telefone: string;
   referencia: string;
-}
-
-interface NovoFiado {
-  cliente_id: number | null;
-  valor: number;
 }
 
 const Vendas: React.FC = () => {
@@ -24,16 +19,14 @@ const Vendas: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [modalClienteAberto, setModalClienteAberto] = useState(false);
-  const [modalEditarClienteAberto, setModalEditarClienteAberto] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState<number | null>(null);
-  const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
-  const [valorFiado, setValorFiado] = useState<number>(0);
-  const [valorFiadoInput, setValorFiadoInput] = useState<string>('');
   const [novoCliente, setNovoCliente] = useState<NovoCliente>({ 
     nome: '', 
     telefone: '', 
     referencia: '' 
   });
+  const [valorFiado, setValorFiado] = useState<number>(0);
+  const [valorFiadoInput, setValorFiadoInput] = useState<string>('');
   const [showPagoAnim, setShowPagoAnim] = useState<{[id: number]: boolean}>({});
 
   const carregarDados = useCallback(async () => {
@@ -76,16 +69,6 @@ const Vendas: React.FC = () => {
 
   const fecharModalCliente = () => {
     setModalClienteAberto(false);
-  };
-
-  const abrirModalEditarCliente = (cliente: Cliente) => {
-    setClienteEditando(cliente);
-    setModalEditarClienteAberto(true);
-  };
-
-  const fecharModalEditarCliente = () => {
-    setClienteEditando(null);
-    setModalEditarClienteAberto(false);
   };
 
   const registrarFiado = async () => {
@@ -141,21 +124,21 @@ const Vendas: React.FC = () => {
   };
 
   const atualizarCliente = async () => {
-    if (!clienteEditando) return;
-    if (!clienteEditando.nome) {
+    if (!clienteSelecionado) return;
+    if (!novoCliente.nome) {
       setError('Nome do cliente é obrigatório');
       return;
     }
 
     try {
-      const clienteAtualizado = await clienteService.atualizarCliente(clienteEditando.id, {
-        nome: clienteEditando.nome,
-        telefone: clienteEditando.telefone,
-        referencia: clienteEditando.referencia
+      const clienteAtualizado = await clienteService.atualizarCliente(clienteSelecionado, {
+        nome: novoCliente.nome,
+        telefone: novoCliente.telefone,
+        referencia: novoCliente.referencia
       });
 
-      setClientes(clientes.map(c => c.id === clienteEditando.id ? clienteAtualizado : c));
-      fecharModalEditarCliente();
+      setClientes(clientes.map(c => c.id === clienteAtualizado.id ? clienteAtualizado : c));
+      fecharModalCliente();
       setError(null);
     } catch (err) {
       console.error('Erro ao atualizar cliente:', err);
@@ -166,12 +149,6 @@ const Vendas: React.FC = () => {
   const handleInputNovoCliente = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNovoCliente(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleInputEditarCliente = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!clienteEditando) return;
-    const { name, value } = e.target;
-    setClienteEditando(prev => ({ ...prev!, [name]: value }));
   };
 
   const marcarComoPago = async (vendaId: number) => {
@@ -239,12 +216,6 @@ const Vendas: React.FC = () => {
       style: 'currency', 
       currency: 'BRL' 
     }).format(valor);
-  };
-
-  const clienteNomeById = (id: number | null) => {
-    if (!id) return '';
-    const cliente = clientes.find(c => c.id === id);
-    return cliente ? cliente.nome : '';
   };
 
   return (
@@ -456,7 +427,7 @@ const Vendas: React.FC = () => {
       )}
 
       {/* Modal para editar cliente */}
-      {modalEditarClienteAberto && clienteEditando && (
+      {/* {modalEditarClienteAberto && clienteEditando && (
         <div className="modal-backdrop">
           <div className="modal">
             <h2 className="modal-title">Editar Cliente</h2>
@@ -510,7 +481,7 @@ const Vendas: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      )} */}
     </Layout>
   );
 };

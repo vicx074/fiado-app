@@ -3,7 +3,7 @@ import { clienteService } from '../services/clienteService';
 import { vendaService } from '../services/vendaService';
 import Layout from '../components/Layout';
 import { Cliente, Venda } from '../types';
-import { Users, DollarSign, ShoppingCart, AlertTriangle, UserCog } from 'lucide-react';
+import { Users, ShoppingCart, AlertTriangle, UserCog } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './styles/Dashboard.css';
 
@@ -74,15 +74,6 @@ const Dashboard: React.FC = () => {
       style: 'currency', 
       currency: 'BRL' 
     }).format(valor);
-  };
-
-  const formatarData = (dataString: string) => {
-    const data = new Date(dataString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(data);
   };
 
   return (

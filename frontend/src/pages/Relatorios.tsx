@@ -5,11 +5,11 @@ import { clienteService } from '../services/clienteService';
 import { Cliente, Venda, ResumoRelatorio } from '../types';
 import './styles/Relatorios.css';
 import * as XLSX from 'xlsx';
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { Search, Edit2, Trash2, Edit } from 'lucide-react';
+// import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Search, Edit2, Trash2 /*, Edit*/ } from 'lucide-react';
 
 const Relatorios: React.FC = () => {
-  const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
+  // const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,13 +20,13 @@ const Relatorios: React.FC = () => {
     cliente_id: ''
   });
   const [termoBusca, setTermoBusca] = useState('');
-  const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
+  // const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
   const [modalEditarAberto, setModalEditarAberto] = useState(false);
   const [clienteEditado, setClienteEditado] = useState<Cliente | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
-  const [modalEditarValor, setModalEditarValor] = useState(false);
-  const [clienteValorEditando, setClienteValorEditando] = useState<Cliente | null>(null);
-  const [novoValorFiado, setNovoValorFiado] = useState('');
+  // const [modalEditarValor, setModalEditarValor] = useState(false);
+  // const [clienteValorEditando, setClienteValorEditando] = useState<Cliente | null>(null);
+  // const [novoValorFiado, setNovoValorFiado] = useState('');
   
   const carregarDados = useCallback(async () => {
     try {
@@ -41,7 +41,7 @@ const Relatorios: React.FC = () => {
         clienteService.listarClientes()
       ]);
       
-      setResumo(resumoData);
+      // setResumo(resumoData);
       setVendas(vendasData);
       setClientes(clientesData);
       setError(null);
@@ -97,21 +97,21 @@ const Relatorios: React.FC = () => {
   };
 
   // Função para exportar vendas para Excel
-  const exportarVendasExcel = () => {
-    const wsData = [
-      ['Data', 'Cliente', 'Itens', 'Total'],
-      ...vendas.map(venda => [
-        formatarData(venda.data),
-        venda.cliente_nome || 'Cliente não cadastrado',
-        venda.itens?.length || 0,
-        venda.valor || venda.total
-      ])
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Vendas');
-    XLSX.writeFile(wb, 'relatorio_vendas.xlsx');
-  };
+  // const exportarVendasExcel = () => {
+  //   const wsData = [
+  //     ['Data', 'Cliente', 'Itens', 'Total'],
+  //     ...vendas.map(venda => [
+  //       formatarData(venda.data),
+  //       venda.cliente_nome || 'Cliente não cadastrado',
+  //       venda.itens?.length || 0,
+  //       venda.valor || venda.total
+  //     ])
+  //   ];
+  //   const ws = XLSX.utils.aoa_to_sheet(wsData);
+  //   const wb = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(wb, ws, 'Vendas');
+  //   XLSX.writeFile(wb, 'relatorio_vendas.xlsx');
+  // };
 
   // Função para exportar clientes fiado para Excel
   const exportarFiadoExcel = () => {
@@ -130,18 +130,23 @@ const Relatorios: React.FC = () => {
   };
 
   // Preparar dados para o gráfico de vendas por data
-  const vendasPorData = vendas.reduce((acc: Record<string, number>, venda) => {
-    const data = formatarData(venda.data);
-    acc[data] = (acc[data] || 0) + (venda.valor || venda.total || 0);
-    return acc;
-  }, {});
-  const vendasChartData = Object.entries(vendasPorData).map(([data, total]) => ({ data, total }));
+  // const vendasPorData = vendas.reduce((acc: Record<string, number>, venda) => {
+  //   const data = formatarData(venda.data);
+  //   acc[data] = (acc[data] || 0) + (venda.valor || venda.total || 0);
+  //   return acc;
+  // }, {});
+  // const vendasChartData = Object.entries(vendasPorData).map(([data, total]) => ({ data, total }));
 
   // Encontrar maior valor de fiado
   const maiorFiado = clientes.reduce((max, c) => c.fiado > max ? c.fiado : max, 0);
 
+  // const editarCliente = (cliente: Cliente) => {
+  //   setClienteEditando(cliente);
+  //   setClienteEditado({ ...cliente });
+  //   setModalEditarAberto(true);
+  // };
+
   const editarCliente = (cliente: Cliente) => {
-    setClienteEditando(cliente);
     setClienteEditado({ ...cliente });
     setModalEditarAberto(true);
   };
@@ -152,7 +157,7 @@ const Relatorios: React.FC = () => {
       await clienteService.atualizarCliente(clienteEditado.id, clienteEditado);
       setClientes(clientes.map(c => c.id === clienteEditado.id ? clienteEditado : c));
       setModalEditarAberto(false);
-      setClienteEditando(null);
+      // setClienteEditando(null);
     } catch (err) {
       alert('Erro ao salvar cliente.');
     }
