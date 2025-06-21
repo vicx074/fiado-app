@@ -150,6 +150,29 @@
   }
 }
 
+@media (max-width: 600px) {
+  .venda-modal {
+    max-width: 99vw;
+    padding: 8px;
+  }
+  .actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .produto-selection {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .quantidade-group {
+    width: 100%;
+  }
+  .carrinho-table th, .carrinho-table td {
+    padding: 0.4rem;
+    font-size: 0.92em;
+  }
+}
+
 select {
   width: 100%;
   padding: 8px;
@@ -176,4 +199,4 @@ select:focus {
 .acoes {
   display: flex;
   gap: 10px;
-} 
+}

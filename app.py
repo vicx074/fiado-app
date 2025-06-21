@@ -1,13 +1,16 @@
 from flask import Flask, request, jsonify
 from extensions import db, ma
 from models import Cliente, Produto, Venda, VendaItem
+from models.usuario import Usuario
+from auth import token_required, gerar_token, SECRET_KEY
 from sqlalchemy import func
 from datetime import datetime, date
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = SECRET_KEY
 
 # Habilitar CORS
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -18,23 +21,74 @@ ma.init_app(app)
 with app.app_context():
     db.create_all()
 
+# ------------------- ROTAS DE AUTENTICAÇÃO -----------------------
+
+@app.route('/auth/cadastro', methods=['POST'])
+def cadastrar_usuario():
+    dados = request.get_json()
+    
+    # Verificar se email já existe
+    if Usuario.query.filter_by(email=dados['email']).first():
+        return jsonify({'message': 'Email já cadastrado!'}), 400
+    
+    usuario = Usuario(
+        nome=dados['nome'],
+        email=dados['email'],
+        estabelecimento=dados['estabelecimento']
+    )
+    usuario.definir_senha(dados['senha'])
+    
+    db.session.add(usuario)
+    db.session.commit()
+    
+    return jsonify(usuario.to_dict()), 201
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    dados = request.get_json()
+    usuario = Usuario.query.filter_by(email=dados['email']).first()
+    
+    if not usuario or not usuario.verificar_senha(dados['senha']):
+        return jsonify({'message': 'Email ou senha incorretos!'}), 401
+    
+    token = gerar_token(usuario.id)
+    return jsonify({
+        'token': token,
+        'usuario': usuario.to_dict()
+    })
+
+@app.route('/auth/verificar', methods=['GET'])
+@token_required
+def verificar_token(current_user):
+    return jsonify({'valid': True})
+
 # ------------------- ROTAS DE CLIENTES -----------------------
 
 @app.route('/clientes', methods=['GET'])
-def listar_clientes():
-    clientes = Cliente.query.all()
+@token_required
+def listar_clientes(current_user):
+    clientes = Cliente.query.filter_by(usuario_id=current_user.id).all()
     return jsonify([
-        {'id': c.id, 'nome': c.nome, 'telefone': c.telefone, 'fiado': c.fiado}
+        {
+            'id': c.id, 
+            'nome': c.nome, 
+            'telefone': c.telefone, 
+            'fiado': c.fiado,
+            'referencia': c.referencia
+        }
         for c in clientes
     ])
 
 @app.route('/clientes', methods=['POST'])
-def criar_cliente():
+@token_required
+@cross_origin()
+def criar_cliente(current_user):
     data = request.json
     novo = Cliente(
         nome=data['nome'],
         telefone=data.get('telefone', ''),
-        fiado=data.get('fiado', 0.0)
+        fiado=data.get('fiado', 0.0),
+        usuario_id=current_user.id
     )
     db.session.add(novo)
     db.session.commit()
@@ -46,8 +100,9 @@ def criar_cliente():
     }), 201
 
 @app.route('/clientes/<int:id>', methods=['GET'])
-def buscar_cliente(id):
-    cliente = Cliente.query.get_or_404(id)
+@token_required
+def buscar_cliente(current_user, id):
+    cliente = Cliente.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     return jsonify({
         'id': cliente.id,
         'nome': cliente.nome,
@@ -56,8 +111,9 @@ def buscar_cliente(id):
     })
 
 @app.route('/clientes/<int:id>', methods=['PUT'])
-def atualizar_cliente(id):
-    cliente = Cliente.query.get_or_404(id)
+@token_required
+def atualizar_cliente(current_user, id):
+    cliente = Cliente.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     data = request.json
     cliente.nome = data.get('nome', cliente.nome)
     cliente.telefone = data.get('telefone', cliente.telefone)
@@ -71,8 +127,9 @@ def atualizar_cliente(id):
     })
 
 @app.route('/clientes/<int:id>', methods=['DELETE'])
-def deletar_cliente(id):
-    cliente = Cliente.query.get_or_404(id)
+@token_required
+def deletar_cliente(current_user, id):
+    cliente = Cliente.query.filter_by(id=id, usuario_id=current_user.id).first_or_404()
     db.session.delete(cliente)
     db.session.commit()
     return '', 204
@@ -124,8 +181,15 @@ def deletar_produto(id):
 
 # ------------------- ROTAS DE VENDAS -----------------------
 
+@app.route('/vendas', methods=['OPTIONS'])
+@cross_origin()
+def vendas_options():
+    return '', 204
+
 @app.route('/vendas', methods=['POST'])
-def registrar_venda():
+@cross_origin()
+@token_required
+def registrar_venda(current_user):
     data = request.json
     cliente_id = data.get('cliente_id')
     valor = data.get('valor', 0.0)
@@ -141,13 +205,13 @@ def registrar_venda():
             return jsonify({'error': 'Cliente não encontrado'}), 404
         cliente.fiado += float(valor)
         # Salva o valor do fiado puro na venda
-        venda = Venda(cliente_id=cliente_id, valor=valor)
+        venda = Venda(cliente_id=cliente_id, valor=valor, usuario_id=current_user.id)
         db.session.add(venda)
         db.session.commit()
         return jsonify({'id': venda.id, 'cliente_id': venda.cliente_id, 'data': venda.data.isoformat()}), 201
 
     # Lógica antiga para vendas com itens
-    venda = Venda(cliente_id=cliente_id)
+    venda = Venda(cliente_id=cliente_id, usuario_id=current_user.id)
     db.session.add(venda)
 
     for item in itens:
@@ -171,7 +235,9 @@ def registrar_venda():
     return jsonify({'id': venda.id, 'cliente_id': venda.cliente_id, 'data': venda.data.isoformat()}), 201
 
 @app.route('/vendas/<int:id>', methods=['PUT'])
-def atualizar_venda(id):
+@cross_origin()
+@token_required
+def atualizar_venda(current_user, id):
     venda = Venda.query.get_or_404(id)
     data = request.json
 
@@ -205,7 +271,9 @@ def atualizar_venda(id):
     return jsonify({'id': venda.id, 'cliente_id': venda.cliente_id, 'data': venda.data.isoformat()})
 
 @app.route('/vendas/<int:id>', methods=['DELETE'])
-def deletar_venda(id):
+@cross_origin()
+@token_required
+def deletar_venda(current_user, id):
     try:
         venda = Venda.query.get_or_404(id)
         cliente = Cliente.query.get(venda.cliente_id) if venda.cliente_id else None

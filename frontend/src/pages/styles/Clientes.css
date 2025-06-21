@@ -130,4 +130,25 @@
 
 .btn-secondary:hover {
   background-color: #5a6268;
-} 
+}
+
+@media (max-width: 600px) {
+  .table-container {
+    overflow-x: auto;
+  }
+  .data-table th, .data-table td {
+    padding: 8px 6px;
+    font-size: 0.95em;
+  }
+  .acoes {
+    gap: 6px;
+  }
+  .btn-icon {
+    font-size: 0.85rem;
+    padding: 4px 7px;
+  }
+  .modal {
+    padding: 12px;
+    max-width: 98vw;
+  }
+}
